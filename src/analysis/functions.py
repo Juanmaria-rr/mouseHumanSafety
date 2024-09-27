@@ -669,3 +669,41 @@ def discrepancifier(df):
             .otherwise(F.lit("dispar")),
         ),
     )
+
+
+def harmonic_sum(evidence_scores):
+    harmonic_sum = sum(
+        score / ((i + 1) ** (2)) for i, score in enumerate(evidence_scores)
+    )
+    return harmonic_sum
+
+
+def max_harmonic_sum(evidence_scores):
+    max_theoretical_harmonic_sum = sum(
+        1 / ((i + 1) ** (2)) for i in range(len(evidence_scores))
+    )
+    return max_theoretical_harmonic_sum
+
+
+def make_harmonic_sum(scoreDiseases1):
+
+    df_py = scoreDiseases1.toPandas()
+
+    values = []
+    for row in df_py["score"]:
+        z = sorted(row, reverse=True)
+        values.append(harmonic_sum(z))
+    # maximumScore = max(values)
+
+    maximumScore = 1.644
+
+    df_py["harmonicSum"] = values
+    normalised = []
+    for row in df_py["harmonicSum"]:
+        new = row / (maximumScore)
+        normalised.append(new)
+    df_py["harmonicSumNorm"] = normalised
+
+    ## convert pandas to spark dataframe
+    df = spark.createDataFrame(df_py).withColumnRenamed("targetFromSourceId", "id")
+    return df
